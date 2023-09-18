@@ -245,6 +245,8 @@ class SvgPicture extends StatefulWidget {
     this.clipBehavior = Clip.hardEdge,
     this.cacheColorFilter = false,
     this.theme,
+    this.color,
+    this.ignoreColor = false,
   }) : super(key: key);
 
   /// Instantiates a widget that renders an SVG picture from an [AssetBundle].
@@ -339,13 +341,14 @@ class SvgPicture extends StatefulWidget {
     this.alignment = Alignment.center,
     this.allowDrawingOutsideViewBox = false,
     this.placeholderBuilder,
-    Color? color,
+    this.color,
     BlendMode colorBlendMode = BlendMode.srcIn,
     this.semanticsLabel,
     this.excludeFromSemantics = false,
     this.clipBehavior = Clip.hardEdge,
     this.cacheColorFilter = false,
     this.theme,
+    this.ignoreColor = false,
   })  : pictureProvider = ExactAssetPicture(
           allowDrawingOutsideViewBox == true
               ? svgStringDecoderOutsideViewBoxBuilder
@@ -403,13 +406,14 @@ class SvgPicture extends StatefulWidget {
     this.matchTextDirection = false,
     this.allowDrawingOutsideViewBox = false,
     this.placeholderBuilder,
-    Color? color,
+    this.color,
     BlendMode colorBlendMode = BlendMode.srcIn,
     this.semanticsLabel,
     this.excludeFromSemantics = false,
     this.clipBehavior = Clip.hardEdge,
     this.cacheColorFilter = false,
     this.theme,
+    this.ignoreColor = false,
   })  : pictureProvider = NetworkPicture(
           allowDrawingOutsideViewBox == true
               ? svgByteDecoderOutsideViewBoxBuilder
@@ -463,13 +467,14 @@ class SvgPicture extends StatefulWidget {
     this.matchTextDirection = false,
     this.allowDrawingOutsideViewBox = false,
     this.placeholderBuilder,
-    Color? color,
+    this.color,
     BlendMode colorBlendMode = BlendMode.srcIn,
     this.semanticsLabel,
     this.excludeFromSemantics = false,
     this.clipBehavior = Clip.hardEdge,
     this.cacheColorFilter = false,
     this.theme,
+    this.ignoreColor = false,
   })  : pictureProvider = FilePicture(
           allowDrawingOutsideViewBox == true
               ? svgByteDecoderOutsideViewBoxBuilder
@@ -519,13 +524,14 @@ class SvgPicture extends StatefulWidget {
     this.matchTextDirection = false,
     this.allowDrawingOutsideViewBox = false,
     this.placeholderBuilder,
-    Color? color,
+    this.color,
     BlendMode colorBlendMode = BlendMode.srcIn,
     this.semanticsLabel,
     this.excludeFromSemantics = false,
     this.clipBehavior = Clip.hardEdge,
     this.cacheColorFilter = false,
     this.theme,
+    this.ignoreColor = false,
   })  : pictureProvider = MemoryPicture(
           allowDrawingOutsideViewBox == true
               ? svgByteDecoderOutsideViewBoxBuilder
@@ -575,13 +581,14 @@ class SvgPicture extends StatefulWidget {
     this.matchTextDirection = false,
     this.allowDrawingOutsideViewBox = false,
     this.placeholderBuilder,
-    Color? color,
+    this.color,
     BlendMode colorBlendMode = BlendMode.srcIn,
     this.semanticsLabel,
     this.excludeFromSemantics = false,
     this.clipBehavior = Clip.hardEdge,
     this.cacheColorFilter = false,
     this.theme,
+    this.ignoreColor = false,
   })  : pictureProvider = StringPicture(
           allowDrawingOutsideViewBox == true
               ? svgStringDecoderOutsideViewBoxBuilder
@@ -601,7 +608,7 @@ class SvgPicture extends StatefulWidget {
 
   static ColorFilter? _getColorFilter(Color? color, BlendMode colorBlendMode) =>
       color == null
-          ? ColorFilter.mode(Colors.blue, colorBlendMode)
+          ? ColorFilter.mode(Colors.red, colorBlendMode)
           : ColorFilter.mode(color, colorBlendMode);
 
   /// A [PictureInfoDecoderBuilder] for [Uint8List]s that will clip to the viewBox.
@@ -738,6 +745,9 @@ class SvgPicture extends StatefulWidget {
   /// The theme used when parsing SVG elements.
   final SvgTheme? theme;
 
+  final Color? color;
+  final bool ignoreColor;
+
   @override
   State<SvgPicture> createState() => _SvgPictureState();
 }
@@ -866,7 +876,7 @@ class _SvgPictureState extends State<SvgPicture> {
 
   @override
   Widget build(BuildContext context) {
-    final Color primaryColor = Theme.of(context).primaryColor;
+    final Color primaryColor = widget.color ?? Theme.of(context).primaryColor;
     late Widget child;
     if (_picture != null) {
       final Rect viewport = Offset.zero & _picture!.viewport.size;
@@ -902,10 +912,11 @@ class _SvgPictureState extends State<SvgPicture> {
 
       if (widget.pictureProvider.colorFilter == null &&
           widget.colorFilter != null) {
-        child = ColorFiltered(
-          colorFilter: _getColorFilter(primaryColor, BlendMode.srcIn),
-          child: child,
-        );
+        if (!widget.ignoreColor)
+          child = ColorFiltered(
+            colorFilter: _getColorFilter(primaryColor, BlendMode.srcIn),
+            child: child,
+          );
       }
     } else {
       child = widget.placeholderBuilder == null
